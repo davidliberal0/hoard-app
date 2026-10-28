@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inventory App Guide</title>
+<style>
+:root{
+  --bg:#fbfaf7;--surface:#ffffff;--surface-2:#f3f1ec;--text:#1f1e1c;--muted:#5f5e5a;--border:#e2dfd6;
+  --accent:#534AB7;--accent-bg:#EEEDFE;--accent-text:#3C3489;
+  --store:#993C1D;--store-bg:#FAECE7;--store-text:#712B13;
+  --ok:#3B6D11;--ok-bg:#EAF3DE;--warn:#854F0B;--warn-bg:#FAEEDA;--bad:#A32D2D;--bad-bg:#FCEBEB;
+  --code-bg:#f3f1ec;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a1a18;--surface:#232321;--surface-2:#2c2c2a;--text:#ecebe6;--muted:#b4b2a9;--border:#3a3936;
+    --accent:#AFA9EC;--accent-bg:#26215C;--accent-text:#CECBF6;
+    --store:#F0997B;--store-bg:#4A1B0C;--store-text:#F5C4B3;
+    --ok:#97C459;--ok-bg:#173404;--warn:#EF9F27;--warn-bg:#412402;--bad:#F09595;--bad-bg:#501313;
+    --code-bg:#2c2c2a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1a1a18;--surface:#232321;--surface-2:#2c2c2a;--text:#ecebe6;--muted:#b4b2a9;--border:#3a3936;
+  --accent:#AFA9EC;--accent-bg:#26215C;--accent-text:#CECBF6;
+  --store:#F0997B;--store-bg:#4A1B0C;--store-text:#F5C4B3;
+  --ok:#97C459;--ok-bg:#173404;--warn:#EF9F27;--warn-bg:#412402;--bad:#F09595;--bad-bg:#501313;
+  --code-bg:#2c2c2a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.layout{display:grid;grid-template-columns:240px minmax(0,1fr);max-width:1180px;margin:0 auto;gap:40px;padding:0 24px}
+nav.toc{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:32px 0;font-size:14px}
+nav.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 0}
+nav.toc a:hover{color:var(--accent)}
+nav.toc .group{margin-top:14px;font-weight:600;color:var(--text);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+main{padding:32px 0 96px;min-width:0}
+h1{font-size:32px;line-height:1.2;margin:0 0 8px}
+h2{font-size:24px;margin:56px 0 12px;padding-top:12px;border-top:1px solid var(--border)}
+h3{font-size:18px;margin:28px 0 8px}
+p,li{color:var(--text)}
+.lede{color:var(--muted);font-size:18px;margin:0 0 24px}
+a{color:var(--accent)}
+code{font-family:var(--mono);font-size:.88em;background:var(--code-bg);padding:1px 5px;border-radius:4px}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:10px;padding:14px 16px;overflow-x:auto;font-size:13.5px;line-height:1.55}
+pre code{background:none;padding:0;font-size:inherit}
+table{width:100%;border-collapse:collapse;font-size:14.5px;margin:12px 0 20px;display:block;overflow-x:auto}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--border)}
+th{background:var(--surface-2);font-weight:600}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin:16px 0}
+.callout{border-radius:10px;padding:12px 16px;margin:16px 0;font-size:15px}
+.callout strong{display:block;margin-bottom:2px}
+.tip{background:var(--accent-bg);color:var(--accent-text)}
+.warn{background:var(--warn-bg);color:var(--warn)}
+.bad{background:var(--bad-bg);color:var(--bad)}
+.good{background:var(--ok-bg);color:var(--ok)}
+.callout p,.callout li{color:inherit;margin:4px 0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--accent-bg);color:var(--accent-text);margin-right:4px}
+.diagram{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;margin:16px 0}
+.diagram svg{width:100%;height:auto;display:block}
+.d-container{fill:var(--accent-bg);stroke:var(--accent)}
+.d-box{fill:var(--surface);stroke:var(--border)}
+.d-store{fill:var(--store-bg);stroke:var(--store)}
+.d-title{fill:var(--accent-text);font-weight:600;font-size:14px}
+.d-store-title{fill:var(--store-text);font-weight:600;font-size:14px}
+.d-sub{fill:var(--muted);font-size:12px}
+.d-store-sub{fill:var(--store-text);font-size:12px;opacity:.85}
+.d-text{fill:var(--text);font-size:14px}
+.d-line{stroke:var(--muted);stroke-width:1.5;fill:none}
+ol.phases>li{margin-bottom:14px}
+.check li{list-style:none;margin-left:-20px}
+.check li::before{content:"☐ ";color:var(--muted)}
+.theme-btn{position:fixed;top:12px;right:12px;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer}
+@media (max-width:900px){
+  .layout{grid-template-columns:1fr;padding:0 16px;gap:0}
+  nav.toc{position:static;height:auto;padding:24px 0 0;border-bottom:1px solid var(--border)}
+  .grid2{grid-template-columns:1fr}
+  h1{font-size:26px}
+}
+</style>
+</head>
+<body>
+<button class="theme-btn" id="themeBtn" aria-label="Toggle light or dark theme">Theme</button>
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <div class="group">Start here</div>
+  <a href="#overview">1. What we're building</a>
+  <a href="#architecture">2. Architecture</a>
+  <a href="#flows">3. How a request flows</a>
+  <div class="group">Choices</div>
+  <a href="#stack">4. Tech stack &amp; why</a>
+  <a href="#hosting">5. Free hosting</a>
+  <div class="group">Android</div>
+  <a href="#mvvm">6. MVVM explained</a>
+  <a href="#android-layers">7. Android layers in code</a>
+  <a href="#photos-client">8. Photos on the phone</a>
+  <div class="group">Backend</div>
+  <a href="#backend-layers">9. Spring Boot layers</a>
+  <a href="#data">10. Data model</a>
+  <a href="#api">11. REST API</a>
+  <a href="#storage">12. Photo storage</a>
+  <a href="#auth">13. Authentication</a>
+  <div class="group">Shipping</div>
+  <a href="#testing">14. Testing</a>
+  <a href="#local">15. Local setup</a>
+  <a href="#structure">16. Project structure</a>
+  <a href="#phases">17. Build plan</a>
+  <a href="#pitfalls">18. Common pitfalls</a>
+  <a href="#decisions">19. Open decisions</a>
+  <a href="#glossary">20. Glossary</a>
+</nav>
+
+<main>
+<h1>Tech inventory app: build guide</h1>
+<p class="lede">An Android app (Kotlin + Jetpack Compose) backed by a Spring Boot REST API, for tracking the tech and items you own, with photos. Hosted entirely on free tiers.</p>
+
+<div class="callout tip"><strong>How to read this</strong><p>Each section explains what we're using, why we picked it, and what we gave up by not picking the alternatives. You don't need to memorize it. Read sections 1 to 3 first, then come back to each part when you reach that phase of the build plan (section 17).</p></div>
+
+<!-- 1 -->
+<h2 id="overview">1. What we're building</h2>
+<h3>Version 1 scope</h3>
+<ul>
+  <li>Add, view, edit, and delete items (name, category, brand, model, serial number, purchase date and price, condition, location, notes)</li>
+  <li>Take photos with the camera or pick them from the gallery; several photos per item, one marked as the primary (thumbnail)</li>
+  <li>Item list with search and category filter</li>
+  <li>Item detail screen with a photo gallery and full-screen viewer</li>
+  <li>Login, so the API isn't open to the whole internet</li>
+</ul>
+<h3>Not in version 1 (on purpose)</h3>
+<p>Offline mode, barcode scanning, multiple users or sharing, reports and charts. Each of these is a reasonable v2 feature, but adding them now would roughly double the work before you have anything working end to end.</p>
+<div class="callout warn"><strong>Why keep v1 small?</strong><p>The hardest part of a first full-stack project isn't any single feature. It's getting the phone, the API, the database, and file storage all talking to each other. Get one thin slice working through every layer first, then widen it.</p></div>
+
+<!-- 2 -->
+<h2 id="architecture">2. Architecture</h2>
+<div class="diagram">
+<svg viewBox="0 0 680 450" role="img" aria-label="Architecture: Android app calls Spring Boot API, which uses Neon Postgres and Cloudflare R2; app loads images directly from R2">
+<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect class="d-container" x="40" y="40" width="180" height="340" rx="16" stroke-width="0.75"/>
+<text class="d-title" x="130" y="66" text-anchor="middle">Android app</text>
+<text class="d-sub" x="130" y="84" text-anchor="middle">Kotlin, Compose, Hilt</text>
+<rect class="d-container" x="250" y="40" width="180" height="340" rx="16" stroke-width="0.75"/>
+<text class="d-title" x="340" y="66" text-anchor="middle">Spring Boot API</text>
+<text class="d-sub" x="340" y="84" text-anchor="middle">Java 21, on Render</text>
+<rect class="d-box" x="55" y="100" width="150" height="44" rx="8"/><text class="d-text" x="130" y="127" text-anchor="middle">Compose UI</text>
+<rect class="d-box" x="55" y="170" width="150" height="44" rx="8"/><text class="d-text" x="130" y="197" text-anchor="middle">ViewModels</text>
+<rect class="d-box" x="55" y="240" width="150" height="44" rx="8"/><text class="d-text" x="130" y="267" text-anchor="middle">Repositories</text>
+<rect class="d-box" x="55" y="310" width="150" height="44" rx="8"/><text class="d-text" x="130" y="337" text-anchor="middle">Retrofit / Coil</text>
+<line class="d-line" x1="130" y1="146" x2="130" y2="168" marker-end="url(#ah)"/>
+<line class="d-line" x1="130" y1="216" x2="130" y2="238" marker-end="url(#ah)"/>
+<line class="d-line" x1="130" y1="286" x2="130" y2="308" marker-end="url(#ah)"/>
+<rect class="d-box" x="265" y="100" width="150" height="44" rx="8"/><text class="d-text" x="340" y="127" text-anchor="middle">Controllers + DTOs</text>
+<rect class="d-box" x="265" y="170" width="150" height="44" rx="8"/><text class="d-text" x="340" y="197" text-anchor="middle">Services</text>
+<rect class="d-box" x="265" y="240" width="150" height="44" rx="8"/><text class="d-text" x="340" y="267" text-anchor="middle">JPA repositories</text>
+<rect class="d-box" x="265" y="310" width="150" height="44" rx="8"/><text class="d-text" x="340" y="337" text-anchor="middle">Storage service</text>
+<line class="d-line" x1="340" y1="146" x2="340" y2="168" marker-end="url(#ah)"/>
+<line class="d-line" x1="340" y1="216" x2="340" y2="238" marker-end="url(#ah)"/>
+<line class="d-line" x1="222" y1="122" x2="248" y2="122" marker-end="url(#ah)"/>
+<rect class="d-store" x="470" y="234" width="170" height="56" rx="8" stroke-width="0.75"/>
+<text class="d-store-title" x="555" y="257" text-anchor="middle">Neon Postgres</text>
+<text class="d-store-sub" x="555" y="277" text-anchor="middle">Items, photo records</text>
+<rect class="d-store" x="470" y="304" width="170" height="56" rx="8" stroke-width="0.75"/>
+<text class="d-store-title" x="555" y="327" text-anchor="middle">Cloudflare R2</text>
+<text class="d-store-sub" x="555" y="347" text-anchor="middle">Photo files</text>
+<line class="d-line" x1="417" y1="262" x2="468" y2="262" marker-end="url(#ah)"/>
+<line class="d-line" x1="417" y1="332" x2="468" y2="332" marker-end="url(#ah)"/>
+<path class="d-line" d="M 130 382 L 130 404 L 555 404 L 555 362" stroke-dasharray="4 4" marker-end="url(#ah)"/>
+<text class="d-sub" x="340" y="426" text-anchor="middle">Images load directly from R2 via signed URLs</text>
+</svg>
+</div>
+
+<h3>The four pieces</h3>
+<table>
+<tr><th>Piece</th><th>Its job</th><th>Lives on</th></tr>
+<tr><td><strong>Android app</strong></td><td>Everything the user sees. Takes photos, shows lists and forms, calls the API.</td><td>Your phone or the emulator</td></tr>
+<tr><td><strong>Spring Boot API</strong></td><td>The single gatekeeper. Validates input, enforces login, reads and writes the database, uploads and deletes files.</td><td>Render (free web service)</td></tr>
+<tr><td><strong>Postgres</strong></td><td>Structured data: items, and records describing each photo (not the photo bytes).</td><td>Neon (free plan)</td></tr>
+<tr><td><strong>Object storage</strong></td><td>The actual image files.</td><td>Cloudflare R2 (free tier)</td></tr>
+</table>
+
+<h3>Three rules this design follows</h3>
+<ol>
+  <li><strong>The app never talks to the database.</strong> Only the API does. That way validation and security live in one place, and you can change the database without touching the app.</li>
+  <li><strong>Images don't go in the database.</strong> Databases are good at small, structured rows; large binary blobs bloat backups and slow queries. Object storage is built for files and is far cheaper per gigabyte. Postgres stores a pointer (<code>storage_key</code>) to each file.</li>
+  <li><strong>Image downloads skip the API.</strong> The API hands out a temporary "signed URL" and the phone downloads the image straight from R2. This keeps the free API server from moving megabytes of image data around.</li>
+</ol>
+
+<!-- 3 -->
+<h2 id="flows">3. How a request flows</h2>
+<p>Tracing a request end to end is the best way to understand any architecture. Here are the three flows that matter.</p>
+
+<h3>A. Creating an item</h3>
+<ol>
+  <li>You fill in the form and tap <strong>Save</strong>. The Compose screen calls <code>viewModel.onSaveClick()</code>.</li>
+  <li>The ViewModel validates the form, sets <code>isSaving = true</code>, and calls <code>itemRepository.create(item)</code>.</li>
+  <li>The repository calls the Retrofit API: <code>POST /api/items</code> with JSON, plus the login token in the <code>Authorization</code> header.</li>
+  <li>Spring Security checks the token. The controller turns the JSON into a <code>CreateItemRequest</code> DTO and runs bean validation (<code>@NotBlank</code> and so on).</li>
+  <li>The service maps the DTO to an <code>Item</code> entity and saves it through the JPA repository. Postgres assigns the timestamps.</li>
+  <li>The controller returns <code>201 Created</code> with an <code>ItemResponse</code>. The ViewModel updates state, and the screen navigates to the detail page.</li>
+</ol>
+
+<h3>B. Uploading a photo</h3>
+<ol>
+  <li>The camera writes a full-size photo to a temporary file. The app resizes it (about 1600px on the long side), re-encodes it as JPEG, and in doing so drops the EXIF metadata, including GPS location.</li>
+  <li>The app sends <code>POST /api/items/{id}/photos</code> as <code>multipart/form-data</code>.</li>
+  <li>The API checks the content type and size, generates a key like <code>items/{itemId}/{photoId}.jpg</code>, and streams the file to R2.</li>
+  <li>Only after the upload succeeds does it insert a row into <code>photos</code>. It returns the photo record with a signed URL.</li>
+</ol>
+
+<h3>C. Viewing a photo</h3>
+<ol>
+  <li><code>GET /api/items/{id}</code> returns the item with a list of photos, each carrying a signed URL valid for about an hour.</li>
+  <li>Coil loads each URL directly from R2. R2 checks the signature and expiry, then serves the bytes. The bucket itself stays private.</li>
+</ol>
+
+<!-- 4 -->
+<h2 id="stack">4. Tech stack &amp; why</h2>
+<p>For each choice: what we picked, why, and what we passed on. "Passed on" doesn't mean bad. It means worse for <em>this</em> project and <em>your</em> goals.</p>
+
+<h3>Android</h3>
+<table>
+<tr><th>Concern</th><th>Pick</th><th>Why</th><th>Passed on &amp; trade-off</th></tr>
+<tr><td>Language</td><td>Kotlin</td><td>Google's recommended language for Android. Null safety, coroutines, concise.</td><td><strong>Java on Android:</strong> works, but modern libraries and docs are Kotlin-first.</td></tr>
+<tr><td>UI</td><td>Jetpack Compose + Material 3</td><td>Declarative: you describe the UI for a given state and Compose redraws when state changes. Less code than XML, and where Android is heading.</td><td><strong>XML Views:</strong> still in many older codebases (worth recognizing), but more boilerplate and more manual UI syncing.</td></tr>
+<tr><td>Architecture</td><td>MVVM with unidirectional data flow</td><td>Google's recommended pattern. ViewModels survive screen rotation. It's what interviewers expect you to know.</td><td><strong>MVI:</strong> stricter (every action is an object); our setup is close to it already. <strong>MVP:</strong> older, more manual lifecycle handling.</td></tr>
+<tr><td>Dependency injection</td><td>Hilt</td><td>Official, built on Dagger, integrates with ViewModels and Navigation. Compile-time checked, so wiring mistakes fail the build rather than crashing at runtime.</td><td><strong>Koin:</strong> simpler to set up, but errors show up at runtime. <strong>Manual DI:</strong> fine for tiny apps, gets messy fast.</td></tr>
+<tr><td>Networking</td><td>Retrofit + OkHttp + kotlinx.serialization</td><td>Industry standard. You define an interface and Retrofit generates the HTTP calls. OkHttp interceptors handle auth headers and logging.</td><td><strong>Ktor client:</strong> great for Kotlin Multiplatform, but less common in Android-only jobs. <strong>Gson/Moshi:</strong> fine, but kotlinx.serialization is Kotlin-native and avoids reflection.</td></tr>
+<tr><td>Images</td><td>Coil</td><td>Kotlin-first, coroutine-based, has a Compose <code>AsyncImage</code>. Handles caching, placeholders, and resizing.</td><td><strong>Glide:</strong> battle-tested, but more Java-flavored and Compose support is newer.</td></tr>
+<tr><td>Camera</td><td><code>TakePicture</code> contract (system camera app)</td><td>About 20 lines of code. The system camera handles focus, flash, and permissions UI.</td><td><strong>CameraX:</strong> needed for a custom in-app camera UI. Much more work, no benefit for v1.</td></tr>
+<tr><td>Gallery</td><td>Photo Picker (<code>PickVisualMedia</code>)</td><td>No storage permission needed; the user picks exactly which photos to share.</td><td><strong>Storage permissions:</strong> broader access, more friction, and Google Play discourages it.</td></tr>
+<tr><td>Navigation</td><td>Navigation Compose</td><td>Official; works with Hilt's <code>hiltViewModel()</code>.</td><td>Third-party routers exist, but there's no need here.</td></tr>
+<tr><td>Local database</td><td><em>None in v1</em></td><td>Online-only keeps the design simple: the server is the single source of truth.</td><td><strong>Room:</strong> add it in v2 for offline support. The repository layer means the UI won't need to change.</td></tr>
+</table>
+
+<h3>Backend</h3>
+<table>
+<tr><th>Concern</th><th>Pick</th><th>Why</th><th>Passed on &amp; trade-off</th></tr>
+<tr><td>Language</td><td>Java 21</td><td>It's what you're studying; job postings for backend roles ask for Java constantly. Records and modern switch make it far less verbose than old Java.</td><td><strong>Kotlin on Spring:</strong> fully supported and nice to use with your Android code, but splits your focus right now.</td></tr>
+<tr><td>Framework</td><td>Spring Boot 3</td><td>Dominant Java backend framework. Built-in validation, security, data access, testing.</td><td><strong>Quarkus/Micronaut:</strong> faster startup and less memory (nice on free tiers), but much smaller job market and community.</td></tr>
+<tr><td>Database</td><td>PostgreSQL</td><td>Relational data (items have photos), strong constraints, free hosting options, you've used it before.</td><td><strong>MongoDB:</strong> flexible schema, but this data is naturally relational. <strong>SQLite:</strong> not suitable for a hosted server.</td></tr>
+<tr><td>Data access</td><td>Spring Data JPA (Hibernate)</td><td>CRUD repositories with almost no code; paging and sorting built in.</td><td><strong>JdbcTemplate/jOOQ:</strong> more control over SQL, more code. JPA's trap is hidden queries (see pitfalls).</td></tr>
+<tr><td>Migrations</td><td>Flyway</td><td>Versioned SQL files (<code>V1__init.sql</code>) applied in order on startup. Every environment gets the same schema.</td><td><strong><code>ddl-auto=update</code>:</strong> convenient but unpredictable; never use it in production. <strong>Liquibase:</strong> similar, more complex formats.</td></tr>
+<tr><td>File storage</td><td>AWS SDK v2 (S3 API)</td><td>R2 and MinIO both speak the S3 API, so the same code runs locally and in production. S3 knowledge transfers to real jobs.</td><td>Provider-specific SDKs (e.g. Azure Blob) lock you to one vendor.</td></tr>
+<tr><td>Auth</td><td>Spring Security + JWT</td><td>Free, no third party, and you learn how auth actually works.</td><td><strong>Auth0, Firebase Auth:</strong> less code, but another service and account; free tiers can change.</td></tr>
+<tr><td>Packaging</td><td>Docker</td><td>Render deploys from a Dockerfile; same image locally and remotely.</td><td>Render's native Java support is limited; Docker is the reliable path.</td></tr>
+</table>
+
+<!-- 5 -->
+<h2 id="hosting">5. Free hosting</h2>
+<div class="callout warn"><strong>Limits change</strong><p>The numbers below were checked in October 2026. Free tiers get revised, so re-check each provider's pricing page when you sign up.</p></div>
+<table>
+<tr><th>Service</th><th>Free limits that matter</th><th>Why this one</th></tr>
+<tr><td><strong>Render</strong> (API)</td><td>512 MB RAM, a small slice of CPU, 750 instance hours/month. Spins down after 15 minutes with no traffic; waking takes about a minute. Bandwidth allowance on the free Hobby plan is small (5 GB/month).</td><td>Deploys from Git with a Dockerfile, simplest free option for a Java server. You've deployed there before.</td></tr>
+<tr><td><strong>Neon</strong> (Postgres)</td><td>0.5 GB storage and 100 compute-hours per project per month. Compute sleeps after 5 minutes idle and wakes in under a second.</td><td>Permanent free plan. <strong>Render's free Postgres expires after 30 days</strong>, so we avoid it.</td></tr>
+<tr><td><strong>Cloudflare R2</strong> (photos)</td><td>10 GB storage, 1 million write operations and 10 million read operations per month, free egress (downloads).</td><td>Most generous free object storage, S3-compatible, no expiring trial.</td></tr>
+</table>
+<h3>Will it fit?</h3>
+<ul>
+  <li><strong>Photos:</strong> at roughly 300–500 KB each after compression, 10 GB holds well over 20,000 photos.</li>
+  <li><strong>Database:</strong> item rows are a few hundred bytes. 0.5 GB is effectively unlimited for a personal inventory.</li>
+  <li><strong>Bandwidth:</strong> images come straight from R2 (free egress), so Render only serves small JSON.</li>
+</ul>
+<h3>The cold-start trade-off</h3>
+<p>Free hosting is free because it sleeps. The first request after 15 idle minutes waits roughly a minute for Render to start your container, plus Spring Boot's own startup. The app handles this with a longer timeout and a "Waking server…" message (section 7) instead of showing an error.</p>
+<p><strong>Alternative:</strong> Google Cloud Run's free tier scales to zero too, with shorter cold starts, but requires enabling billing. Paying about $7/month for Render's smallest always-on instance removes the sleep entirely. Start free; upgrade only if the wait annoys you.</p>
+
+<!-- 6 -->
+<h2 id="mvvm">6. MVVM explained</h2>
+<p>MVVM (Model–View–ViewModel) is a way of splitting app code so each piece has one job. Here's what each part means in this app:</p>
+<div class="grid2">
+  <div class="card"><strong>View (Compose UI)</strong><p>Draws the screen from the current state and reports user actions. No API calls, no business logic. If you deleted all the logic, it should still render from fake state.</p></div>
+  <div class="card"><strong>ViewModel</strong><p>Holds the screen's state, reacts to user actions, calls repositories, and turns results into UI state. Survives screen rotation. Knows nothing about Compose.</p></div>
+  <div class="card"><strong>Model (Repository + data)</strong><p>Where data comes from. The repository hides whether data came from the network, a cache, or (later) a local database.</p></div>
+  <div class="card"><strong>Why bother?</strong><p>Each layer can be tested alone, rotation doesn't lose state, and you can swap the data source (e.g. add Room) without touching the UI.</p></div>
+</div>
+
+<h3>Unidirectional data flow</h3>
+<pre><code>          state (StateFlow&lt;UiState&gt;)
+ViewModel ─────────────────────────────► Screen
+    ▲                                       │
+    └──────── events (onSave, onSearch) ────┘</code></pre>
+<p>State only flows <strong>down</strong>, events only flow <strong>up</strong>. The screen never changes its own data; it asks the ViewModel to. This makes bugs much easier to trace: if the screen shows the wrong thing, the bug is in the state; if the state is wrong, the bug is in the ViewModel.</p>
+
+<h3>What a request looks like through the layers</h3>
+<pre><code>ItemListScreen        user types "macbook"
+   │ onSearchChange("macbook")
+ItemListViewModel     updates query, debounces 300 ms, calls repository
+   │ itemRepository.search("macbook")
+ItemRepository        calls the API, maps DTOs to domain models, wraps errors
+   │ api.getItems(search = "macbook")
+InventoryApi          Retrofit → GET /api/items?search=macbook</code></pre>
+
+<!-- 7 -->
+<h2 id="android-layers">7. Android layers in code</h2>
+<p>These are trimmed examples to show the shape of each layer. They aren't copy-paste complete.</p>
+
+<h3>API interface (Retrofit)</h3>
+<pre><code>interface InventoryApi {
+    @GET("api/items")
+    suspend fun getItems(
+        @Query("search") search: String? = null,
+        @Query("category") category: String? = null,
+        @Query("page") page: Int = 0
+    ): PageResponse&lt;ItemSummaryDto&gt;
+
+    @GET("api/items/{id}")
+    suspend fun getItem(@Path("id") id: String): ItemDetailDto
+
+    @POST("api/items")
+    suspend fun createItem(@Body body: CreateItemRequest): ItemDetailDto
+
+    @Multipart
+    @POST("api/items/{id}/photos")
+    suspend fun uploadPhoto(
+        @Path("id") itemId: String,
+        @Part file: MultipartBody.Part
+    ): PhotoDto
+}</code></pre>
+
+<h3>Repository</h3>
+<p>Converts network DTOs into the app's own models and turns exceptions into a result the ViewModel can handle. The ViewModel never sees an <code>HttpException</code>.</p>
+<pre><code>class ItemRepository @Inject constructor(
+    private val api: InventoryApi
+) {
+    suspend fun search(query: String): Result&lt;List&lt;ItemSummary&gt;&gt; =
+        runCatching { api.getItems(search = query.ifBlank { null }).content.map { it.toDomain() } }
+}</code></pre>
+<div class="callout tip"><strong>Why map DTOs to domain models?</strong><p>If the API renames a JSON field, you fix one mapper instead of every screen. It costs a few extra classes; for a small app you could skip it, but it's a good habit to show in a portfolio.</p></div>
+
+<h3>UI state</h3>
+<pre><code>sealed interface ItemListUiState {
+    data object Loading : ItemListUiState
+    data object WakingServer : ItemListUiState
+    data class Success(val items: List&lt;ItemSummary&gt;, val query: String) : ItemListUiState
+    data class Error(val message: String) : ItemListUiState
+}</code></pre>
+<p>A sealed interface forces the screen's <code>when</code> to handle every case, so the compiler catches a forgotten error state.</p>
+
+<h3>ViewModel</h3>
+<pre><code>@HiltViewModel
+class ItemListViewModel @Inject constructor(
+    private val repository: ItemRepository
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow&lt;ItemListUiState&gt;(ItemListUiState.Loading)
+    val uiState: StateFlow&lt;ItemListUiState&gt; = _uiState.asStateFlow()
+
+    init { load("") }
+
+    fun load(query: String) {
+        viewModelScope.launch {
+            _uiState.value = ItemListUiState.Loading
+            val slowTimer = launch {
+                delay(3_000)
+                _uiState.value = ItemListUiState.WakingServer
+            }
+            val result = repository.search(query)
+            slowTimer.cancel()
+            _uiState.value = result.fold(
+                onSuccess = { ItemListUiState.Success(it, query) },
+                onFailure = { ItemListUiState.Error("Couldn't load items") }
+            )
+        }
+    }
+}</code></pre>
+<p>Notice the ViewModel exposes a read-only <code>StateFlow</code> and keeps the mutable one private. Only the ViewModel can change state.</p>
+
+<h3>Screen (route + stateless screen)</h3>
+<pre><code>@Composable
+fun ItemListRoute(onItemClick: (String) -&gt; Unit, vm: ItemListViewModel = hiltViewModel()) {
+    val state by vm.uiState.collectAsStateWithLifecycle()
+    ItemListScreen(state = state, onRetry = { vm.load("") }, onItemClick = onItemClick)
+}
+
+@Composable
+fun ItemListScreen(state: ItemListUiState, onRetry: () -&gt; Unit, onItemClick: (String) -&gt; Unit) {
+    when (state) {
+        ItemListUiState.Loading -&gt; CircularProgressIndicator()
+        ItemListUiState.WakingServer -&gt; Text("Waking server… this can take up to a minute")
+        is ItemListUiState.Success -&gt; LazyColumn {
+            items(state.items, key = { it.id }) { ItemCard(it, onClick = { onItemClick(it.id) }) }
+        }
+        is ItemListUiState.Error -&gt; ErrorState(state.message, onRetry)
+    }
+}</code></pre>
+<p>The split matters: <code>ItemListScreen</code> takes only plain data and lambdas, so you can preview it and UI-test it with fake state. No Hilt and no network involved.</p>
+
+<h3>Dependency injection (Hilt)</h3>
+<pre><code>@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+    @Provides @Singleton
+    fun okHttp(auth: AuthInterceptor): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(auth)
+        .readTimeout(90, TimeUnit.SECONDS)   // survives a Render cold start
+        .build()
+
+    @Provides @Singleton
+    fun api(client: OkHttpClient): InventoryApi = Retrofit.Builder()
+        .baseUrl(BuildConfig.API_BASE_URL)
+        .client(client)
+        .addConverterFactory(Json.asConverterFactory("application/json".toMediaType()))
+        .build()
+        .create(InventoryApi::class.java)
+}</code></pre>
+<p>Hilt builds these objects once and hands them to whoever asks with <code>@Inject</code>. In tests you replace the module with one that provides a fake API.</p>
+
+<!-- 8 -->
+<h2 id="photos-client">8. Photos on the phone</h2>
+<h3>Capturing</h3>
+<pre><code>val takePicture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok -&gt;
+    if (ok) vm.onPhotoCaptured(pendingUri)
+}
+val pickPhoto = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri -&gt;
+    uri?.let(vm::onPhotoPicked)
+}</code></pre>
+<ul>
+  <li><code>TakePicture</code> needs a <code>Uri</code> to write to. Create a file in your app's cache directory and expose it with a <code>FileProvider</code> (declared in the manifest).</li>
+  <li>The system camera app does the capturing, so you typically don't need to request the camera permission yourself. If your manifest declares <code>CAMERA</code>, though, Android requires it to be granted before launching the camera intent.</li>
+</ul>
+
+<h3>Preparing for upload</h3>
+<ol>
+  <li><strong>Downscale:</strong> decode at a reduced size (about 1600px long side). Phone photos are often 3–8 MB; this brings them to a few hundred KB.</li>
+  <li><strong>Fix rotation:</strong> many cameras save the image sideways and record the rotation in EXIF metadata. Read the EXIF orientation (<code>ExifInterface</code>) and rotate the bitmap before re-encoding, or photos will appear sideways.</li>
+  <li><strong>Re-encode as JPEG</strong> at about 85% quality. Re-encoding also drops the original EXIF, including <strong>GPS coordinates</strong>, which is a privacy win.</li>
+  <li><strong>Do it off the main thread</strong> (<code>withContext(Dispatchers.Default)</code>) or the UI will freeze.</li>
+</ol>
+
+<h3>Displaying</h3>
+<pre><code>AsyncImage(
+    model = ImageRequest.Builder(LocalContext.current)
+        .data(photo.url)
+        .memoryCacheKey(photo.id)   // signed URLs change; the photo id doesn't
+        .diskCacheKey(photo.id)
+        .crossfade(true)
+        .build(),
+    contentDescription = item.name,
+    contentScale = ContentScale.Crop
+)</code></pre>
+<div class="callout warn"><strong>Signed URLs and caching</strong><p>Each time you fetch an item, its photos get fresh signed URLs. Coil caches by URL by default, so every fetch would look like a new image and re-download it. Using the photo id as the cache key fixes this.</p></div>
+
+<!-- 9 -->
+<h2 id="backend-layers">9. Spring Boot layers</h2>
+<pre><code>Controller   HTTP in/out: routes, status codes, DTO validation. No business logic.
+   │
+Service      Business rules and transactions. "Deleting an item deletes its photos."
+   │
+Repository   Spring Data JPA interfaces. Database access only.
+   │
+Entity       JPA classes mapped to tables. Never returned directly from controllers.</code></pre>
+
+<h3>Why DTOs instead of returning entities?</h3>
+<ul>
+  <li><strong>Control:</strong> the API shape stays stable even if the table changes.</li>
+  <li><strong>Safety:</strong> you never accidentally expose internal fields.</li>
+  <li><strong>Avoids Hibernate surprises:</strong> serializing an entity can trigger lazy loading or infinite recursion (item → photos → item → …).</li>
+</ul>
+<p>Java records make DTOs one line each:</p>
+<pre><code>public record CreateItemRequest(
+    @NotBlank @Size(max = 120) String name,
+    @NotNull Category category,
+    String brand, String model, String serialNumber,
+    LocalDate purchaseDate,
+    @PositiveOrZero BigDecimal purchasePrice,
+    ItemCondition condition, String location, String notes
+) {}</code></pre>
+
+<h3>Controller</h3>
+<pre><code>@RestController
+@RequestMapping("/api/items")
+@RequiredArgsConstructor
+public class ItemController {
+    private final ItemService itemService;
+
+    @GetMapping
+    public Page&lt;ItemSummaryResponse&gt; list(@RequestParam(required = false) String search,
+                                         @RequestParam(required = false) Category category,
+                                         Pageable pageable) {
+        return itemService.search(search, category, pageable);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ItemDetailResponse create(@Valid @RequestBody CreateItemRequest req) {
+        return itemService.create(req);
+    }
+}</code></pre>
+<p><code>@RequiredArgsConstructor</code> is from Lombok and generates the constructor. If you'd rather not use Lombok, write the constructor by hand; constructor injection is the point, not Lombok.</p>
+
+<h3>Error handling</h3>
+<p>One <code>@RestControllerAdvice</code> class turns exceptions into consistent JSON errors, so every controller doesn't need its own try/catch. Spring Boot 3 supports the standard <code>ProblemDetail</code> format:</p>
+<pre><code>@RestControllerAdvice
+public class ApiExceptionHandler {
+    @ExceptionHandler(ItemNotFoundException.class)
+    public ProblemDetail notFound(ItemNotFoundException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+}</code></pre>
+
+<h3>Configuration and secrets</h3>
+<ul>
+  <li>Use Spring profiles: <code>application-local.yml</code> (Docker Postgres and MinIO) and <code>application-prod.yml</code> (Neon and R2).</li>
+  <li>Secrets (database password, R2 keys, JWT secret) come from <strong>environment variables</strong> set in Render's dashboard, never from files committed to Git.</li>
+</ul>
+<pre><code>spring:
+  datasource:
+    url: ${DATABASE_URL}          # Neon: jdbc:postgresql://...?sslmode=require
+    username: ${DATABASE_USER}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 5        # small server, small database
+  servlet:
+    multipart:
+      max-file-size: 5MB          # Spring's default is only 1MB
+      max-request-size: 6MB
+  jpa:
+    hibernate:
+      ddl-auto: validate          # Flyway owns the schema
+    open-in-view: false</code></pre>
+
+<!-- 10 -->
+<h2 id="data">10. Data model</h2>
+<pre><code>-- V1__init.sql
+CREATE TABLE items (
+    id             UUID PRIMARY KEY,
+    name           VARCHAR(120) NOT NULL,
+    category       VARCHAR(40)  NOT NULL,
+    brand          VARCHAR(80),
+    model          VARCHAR(80),
+    serial_number  VARCHAR(120),
+    purchase_date  DATE,
+    purchase_price NUMERIC(10,2) CHECK (purchase_price &gt;= 0),
+    condition      VARCHAR(20),
+    location       VARCHAR(120),
+    notes          TEXT,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE photos (
+    id           UUID PRIMARY KEY,
+    item_id      UUID NOT NULL REFERENCES items(id) ON DELETE CASCADE,
+    storage_key  VARCHAR(300) NOT NULL UNIQUE,
+    content_type VARCHAR(50)  NOT NULL,
+    size_bytes   BIGINT       NOT NULL,
+    is_primary   BOOLEAN      NOT NULL DEFAULT false,
+    created_at   TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_photos_item ON photos(item_id);
+-- at most one primary photo per item, enforced by the database
+CREATE UNIQUE INDEX uq_photos_one_primary ON photos(item_id) WHERE is_primary;</code></pre>
+
+<h3>Design decisions</h3>
+<table>
+<tr><th>Decision</th><th>Why</th><th>Trade-off</th></tr>
+<tr><td>UUID ids</td><td>Not guessable (<code>/items/5</code> invites trying <code>/items/6</code>), and the server can generate the photo id before uploading the file.</td><td>Bigger than integer ids and less human-friendly in logs. Irrelevant at this scale.</td></tr>
+<tr><td>Category as an enum stored as text</td><td>Simple, type-safe in Java and Kotlin, easy to filter.</td><td>Adding a category requires a code change and redeploy. A <code>categories</code> table would let you add them in the app; switch if that bothers you.</td></tr>
+<tr><td><code>NUMERIC</code> for price</td><td>Exact decimal math. Use <code>BigDecimal</code> in Java.</td><td>Never use <code>double</code> for money: floating point rounds (0.1 + 0.2 ≠ 0.3).</td></tr>
+<tr><td>Partial unique index for primary photo</td><td>The database guarantees at most one primary per item, even if there's a bug in the code.</td><td>Setting a new primary must unset the old one first, in the same transaction.</td></tr>
+<tr><td><code>ON DELETE CASCADE</code></td><td>Deleting an item removes its photo rows automatically.</td><td>The files in R2 aren't deleted by the database; the service must delete them (section 12).</td></tr>
+</table>
+
+<!-- 11 -->
+<h2 id="api">11. REST API</h2>
+<table>
+<tr><th>Method</th><th>Path</th><th>Purpose</th><th>Success</th></tr>
+<tr><td>POST</td><td><code>/api/auth/login</code></td><td>Exchange credentials for a JWT</td><td>200</td></tr>
+<tr><td>GET</td><td><code>/api/items?search=&amp;category=&amp;page=&amp;size=</code></td><td>Paged list with primary-photo URL</td><td>200</td></tr>
+<tr><td>GET</td><td><code>/api/items/{id}</code></td><td>Full item with all photos and signed URLs</td><td>200 / 404</td></tr>
+<tr><td>POST</td><td><code>/api/items</code></td><td>Create item</td><td>201 / 400</td></tr>
+<tr><td>PUT</td><td><code>/api/items/{id}</code></td><td>Replace item fields</td><td>200 / 400 / 404</td></tr>
+<tr><td>DELETE</td><td><code>/api/items/{id}</code></td><td>Delete item and its photo files</td><td>204 / 404</td></tr>
+<tr><td>POST</td><td><code>/api/items/{id}/photos</code></td><td>Multipart upload</td><td>201 / 400 / 413</td></tr>
+<tr><td>PATCH</td><td><code>/api/photos/{photoId}</code></td><td>Set as primary</td><td>200</td></tr>
+<tr><td>DELETE</td><td><code>/api/photos/{photoId}</code></td><td>Delete one photo</td><td>204</td></tr>
+</table>
+<div class="callout tip"><strong>Change from the first plan</strong><p>Earlier we had a separate <code>GET /api/photos/{id}/url</code> endpoint. It's simpler to include signed URLs directly in item responses: one request per screen instead of one per photo. Keep the separate endpoint only if you later need to refresh an expired URL without re-fetching the item.</p></div>
+<h3>REST conventions worth following</h3>
+<ul>
+  <li>Plural nouns for resources (<code>/items</code>), HTTP verbs for actions; no <code>/createItem</code>.</li>
+  <li>Correct status codes: <code>201</code> for create, <code>204</code> for delete, <code>400</code> for validation errors, <code>404</code> for missing, <code>401</code> for no or bad token.</li>
+  <li>Paging from day one. Returning "all items" works until it doesn't.</li>
+</ul>
+
+<!-- 12 -->
+<h2 id="storage">12. Photo storage</h2>
+<h3>A storage interface</h3>
+<pre><code>public interface PhotoStorage {
+    void put(String key, InputStream data, long size, String contentType);
+    void delete(String key);
+    URI signedGetUrl(String key, Duration ttl);
+}</code></pre>
+<p>One implementation (<code>S3PhotoStorage</code>) uses the AWS SDK. Because the service depends on the interface, tests can use a fake, and switching providers means writing one new class.</p>
+
+<h3>Pointing the S3 SDK at R2 or MinIO</h3>
+<pre><code>S3Client.builder()
+    .endpointOverride(URI.create(props.endpoint()))   // R2: https://&lt;account-id&gt;.r2.cloudflarestorage.com
+    .region(Region.of(props.region()))                // R2: "auto"
+    .credentialsProvider(StaticCredentialsProvider.create(
+        AwsBasicCredentials.create(props.accessKey(), props.secretKey())))
+    .forcePathStyle(true)                             // needed for MinIO
+    .build();</code></pre>
+<p>Signed URLs come from the SDK's <code>S3Presigner</code>, configured the same way.</p>
+
+<h3>Upload: what to validate</h3>
+<ul>
+  <li><strong>Content type:</strong> allow only <code>image/jpeg</code>, <code>image/png</code>, <code>image/webp</code>.</li>
+  <li><strong>Size:</strong> enforced by Spring's multipart limits (section 9).</li>
+  <li><strong>Key:</strong> generate it on the server (<code>items/{itemId}/{photoId}.jpg</code>). Never use the client's filename as the key; it can contain path tricks or collide.</li>
+  <li><strong>Ownership:</strong> check the item exists before uploading.</li>
+</ul>
+
+<h3>Ordering, and what happens when something fails</h3>
+<table>
+<tr><th>Operation</th><th>Order</th><th>If step 2 fails</th></tr>
+<tr><td>Upload</td><td>1. Put file in R2 → 2. Insert photo row</td><td>An orphan file in R2. Harmless; costs a little storage.</td></tr>
+<tr><td>Delete</td><td>1. Delete row(s) in a transaction → 2. Delete files from R2</td><td>An orphan file again. Never the reverse: a row pointing at a missing file is a broken image in the app.</td></tr>
+</table>
+<p>The rule is: <strong>prefer orphaned files over broken references</strong>. Database transactions can't include R2, so you choose which failure is acceptable. A v2 cleanup job could delete files with no matching row.</p>
+
+<h3>Why upload through the API (for now)</h3>
+<table>
+<tr><th>Approach</th><th>Pros</th><th>Cons</th></tr>
+<tr><td><strong>Through the API</strong> (v1)</td><td>Simple, one request, the server validates everything before storing.</td><td>Image bytes pass through your small free server. Fine for one user.</td></tr>
+<tr><td><strong>Presigned direct upload</strong> (v2)</td><td>Phone uploads straight to R2; the server never touches the bytes. Scales well.</td><td>Three steps (request URL → upload → confirm), harder to validate, more client code.</td></tr>
+</table>
+
+<!-- 13 -->
+<h2 id="auth">13. Authentication</h2>
+<p>Once the API is on the internet, anyone who finds the URL could read or delete your inventory. Auth is required even with a single user.</p>
+<h3>Recommended for v1: single user + JWT</h3>
+<ol>
+  <li>Your username and a <strong>BCrypt hash</strong> of your password are set as environment variables on Render (never the plain password).</li>
+  <li><code>POST /api/auth/login</code> checks the password against the hash and returns a signed JWT that expires (e.g. after 7 days).</li>
+  <li>The app stores the token in DataStore. An OkHttp interceptor adds <code>Authorization: Bearer &lt;token&gt;</code> to every request.</li>
+  <li>Spring Security validates the token on every request. A <code>401</code> sends the app back to the login screen.</li>
+</ol>
+<p>Spring Security's OAuth2 Resource Server starter can validate JWTs signed with a shared secret, which saves you from writing token parsing yourself.</p>
+
+<h3>Options compared</h3>
+<table>
+<tr><th>Option</th><th>Effort</th><th>When to choose</th></tr>
+<tr><td>Single user + JWT</td><td>Low</td><td>Just you. Recommended start.</td></tr>
+<tr><td>Registration + JWT, <code>users</code> table, <code>owner_id</code> on items</td><td>Medium</td><td>Others might use it. Every query must filter by owner, or users see each other's items.</td></tr>
+<tr><td>Google Sign-In (backend verifies Google's ID token)</td><td>Medium</td><td>You want no passwords at all. Requires Google Cloud console setup.</td></tr>
+</table>
+<div class="callout bad"><strong>Never</strong><ul><li>Store passwords in plain text, or commit secrets to Git.</li><li>Hard-code the JWT secret in source code.</li><li>Put the token in a URL query string (it ends up in logs).</li></ul></div>
+
+<!-- 14 -->
+<h2 id="testing">14. Testing</h2>
+<table>
+<tr><th>Layer</th><th>Tool</th><th>What to test</th></tr>
+<tr><td>Backend service</td><td>JUnit 5 + Mockito</td><td>Business rules: deleting an item deletes its files; setting a primary unsets the old one.</td></tr>
+<tr><td>Backend web</td><td><code>@WebMvcTest</code> + MockMvc</td><td>Status codes, validation errors, JSON shape, 401 without a token.</td></tr>
+<tr><td>Backend integration</td><td><code>@SpringBootTest</code> + Testcontainers (Postgres, MinIO)</td><td>The real thing: Flyway migrations run, uploads land in MinIO, cascades work.</td></tr>
+<tr><td>Android ViewModel</td><td>JUnit + coroutines-test + a fake repository</td><td>Loading → Success; Loading → WakingServer → Success; error state; save disabled while saving.</td></tr>
+<tr><td>Android UI</td><td>Compose UI tests (<code>createComposeRule</code>)</td><td>Render <code>ItemListScreen</code> with fake state; assert items appear and taps call the right lambda.</td></tr>
+<tr><td>CI</td><td>GitLab CI</td><td>Run both suites on every push. Testcontainers needs Docker in the CI runner.</td></tr>
+</table>
+<div class="callout tip"><strong>Fakes over mocks on Android</strong><p>A <code>FakeItemRepository</code> class with an in-memory list is often clearer than mocking every call, and it's reusable across tests. This is one reason the ViewModel depends on a repository rather than calling Retrofit directly.</p></div>
+
+<!-- 15 -->
+<h2 id="local">15. Local setup</h2>
+<p>You'll do most development locally. It's faster, free, and has no cold starts.</p>
+<pre><code># docker-compose.yml (in the backend repo)
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_USER: inventory
+      POSTGRES_PASSWORD: inventory
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio12345
+    ports: ["9000:9000", "9001:9001"]   # 9001 = web console to browse files
+    volumes: [miniodata:/data]
+
+volumes:
+  pgdata:
+  miniodata:</code></pre>
+<ul>
+  <li>Run <code>docker compose up -d</code>, then start Spring Boot with the <code>local</code> profile.</li>
+  <li>Create the bucket once in the MinIO console at <code>http://localhost:9001</code>.</li>
+  <li>From the Android emulator, your computer's <code>localhost</code> is <strong><code>http://10.0.2.2:8080</code></strong>.</li>
+  <li>Android blocks plain HTTP by default. Allow it <em>only for <code>10.0.2.2</code></em> with a debug-only network security config; production uses HTTPS.</li></ul>
+
+<h3>Deploy (Render)</h3>
+<pre><code># Dockerfile (multi-stage: build with JDK, run with smaller JRE)
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /app
+COPY . .
+RUN ./gradlew bootJar --no-daemon
+
+FROM eclipse-temurin:21-jre
+WORKDIR /app
+COPY --from=build /app/build/libs/*.jar app.jar
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75"
+EXPOSE 8080
+CMD ["java", "-jar", "app.jar"]</code></pre>
+<p>The JVM flag keeps Java's memory use inside Render's 512 MB limit. Without it, the container can be killed for running out of memory.</p>
+
+<!-- 16 -->
+<h2 id="structure">16. Project structure</h2>
+<div class="grid2">
+<div>
+<h3>Backend</h3>
+<pre><code>inventory-api/
+  src/main/java/.../inventory/
+    item/
+      ItemController.java
+      ItemService.java
+      ItemRepository.java
+      Item.java
+      dto/
+    photo/
+      PhotoController.java
+      PhotoService.java
+      Photo.java
+      storage/PhotoStorage.java
+      storage/S3PhotoStorage.java
+    auth/
+    common/ApiExceptionHandler.java
+    config/
+  src/main/resources/
+    application.yml
+    application-local.yml
+    application-prod.yml
+    db/migration/V1__init.sql
+  docker-compose.yml
+  Dockerfile</code></pre>
+</div>
+<div>
+<h3>Android</h3>
+<pre><code>inventory-android/app/src/main/java/.../
+  data/
+    remote/InventoryApi.kt
+    remote/dto/
+    repository/ItemRepository.kt
+    auth/TokenStore.kt
+  domain/model/
+  di/NetworkModule.kt
+  ui/
+    theme/
+    components/
+    itemlist/
+    itemdetail/
+    itemedit/
+    photoviewer/
+    login/
+    navigation/AppNavHost.kt
+  util/ImageCompressor.kt
+gradle/libs.versions.toml</code></pre>
+</div>
+</div>
+<p><strong>Package by feature</strong> (<code>item/</code>, <code>photo/</code>) rather than by layer (<code>controllers/</code>, <code>services/</code>). Everything about items sits together, which is easier to navigate as the app grows. Use a Gradle <strong>version catalog</strong> (<code>libs.versions.toml</code>) on Android so library versions live in one file.</p>
+<p>Two separate repositories (backend and Android) keep CI and deploys independent. A single monorepo also works; it's a preference, not a rule.</p>
+
+<!-- 17 -->
+<h2 id="phases">17. Build plan</h2>
+<p>Each phase ends with something that works. Don't start the next phase until the current one does.</p>
+<ol class="phases">
+<li><strong>Backend skeleton</strong>
+  <ul class="check"><li>Spring Initializr: Web, Data JPA, Validation, PostgreSQL, Flyway, Security (disabled for now), Testcontainers</li><li>docker-compose with Postgres</li><li><code>V1__init.sql</code></li><li>Item CRUD with DTOs and a global exception handler</li><li>Test with an <code>.http</code> file in IntelliJ or Postman</li><li>One Testcontainers integration test</li></ul></li>
+<li><strong>Photo storage</strong>
+  <ul class="check"><li>Add MinIO to docker-compose</li><li><code>PhotoStorage</code> interface + S3 implementation</li><li>Upload, delete, set primary</li><li>Signed URLs in item responses</li><li>Integration test with MinIO Testcontainer</li></ul></li>
+<li><strong>Android basics</strong>
+  <ul class="check"><li>New Compose project; add Hilt, Retrofit, Navigation, Coil</li><li>List screen against the local API on <code>10.0.2.2</code></li><li>Detail and add/edit screens</li><li>Loading, empty, and error states; ViewModel unit tests</li></ul></li>
+<li><strong>Android photos</strong>
+  <ul class="check"><li>FileProvider + <code>TakePicture</code></li><li>Photo Picker</li><li>Compress, fix rotation, upload</li><li>Gallery + full-screen viewer with stable cache keys</li></ul></li>
+<li><strong>Auth</strong>
+  <ul class="check"><li>Login endpoint + JWT validation; lock down all other endpoints</li><li>Login screen, token storage, auth interceptor, redirect on 401</li></ul></li>
+<li><strong>Deploy</strong>
+  <ul class="check"><li>Create Neon project and R2 bucket + API token</li><li>Dockerfile, Render service, environment variables</li><li>Point a release build at the Render URL; add the "waking server" state</li><li>GitLab CI running tests</li></ul></li>
+<li><strong>Polish</strong>
+  <ul class="check"><li>Search debounce and category filter chips</li><li>Paging in the list</li><li>Confirm-before-delete dialogs</li><li>README with the architecture diagram and screenshots (this matters for a portfolio)</li></ul></li>
+</ol>
+
+<!-- 18 -->
+<h2 id="pitfalls">18. Common pitfalls</h2>
+<table>
+<tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr>
+<tr><td>App can't reach the local API</td><td>Using <code>localhost</code> from the emulator (that's the emulator itself)</td><td>Use <code>10.0.2.2</code>; on a physical phone, use your computer's LAN IP</td></tr>
+<tr><td><code>CLEARTEXT communication not permitted</code></td><td>Android blocks plain HTTP</td><td>Debug-only network security config for <code>10.0.2.2</code></td></tr>
+<tr><td>Uploads fail with 413 or a size exception</td><td>Spring's default multipart limit is 1 MB</td><td>Raise <code>max-file-size</code> and compress on the phone</td></tr>
+<tr><td>Photos appear sideways</td><td>EXIF orientation ignored</td><td>Rotate using <code>ExifInterface</code> before re-encoding</td></tr>
+<tr><td>Item list runs dozens of SQL queries</td><td>N+1 problem: loading each item's photos separately</td><td>Fetch primary photos in one query (join fetch or a dedicated query). Turn on SQL logging locally to spot it</td></tr>
+<tr><td><code>LazyInitializationException</code></td><td>Accessing a lazy relation outside a transaction</td><td>Map to DTOs inside the service's <code>@Transactional</code> method</td></tr>
+<tr><td>Deploy crashes on Render</td><td>JVM uses more than 512 MB</td><td><code>-XX:MaxRAMPercentage=75</code>; avoid unnecessary starters</td></tr>
+<tr><td>Neon connection fails</td><td>Missing SSL</td><td>Add <code>sslmode=require</code> to the JDBC URL</td></tr>
+<tr><td>Screen state lost on rotation</td><td>State held in composables with <code>remember</code> instead of the ViewModel</td><td>Keep screen data in the ViewModel's <code>StateFlow</code></td></tr>
+<tr><td>Secrets in Git history</td><td>Committed <code>application-prod.yml</code> with keys</td><td>Use environment variables; if it already happened, rotate the keys (deleting the file doesn't remove history)</td></tr>
+<tr><td>Images re-download constantly</td><td>Fresh signed URL each fetch</td><td>Stable cache keys (section 8)</td></tr>
+</table>
+
+<!-- 19 -->
+<h2 id="decisions">19. Open decisions</h2>
+<p>These are still your call. Defaults are in bold.</p>
+<table>
+<tr><th>Decision</th><th>Options</th><th>Consider</th></tr>
+<tr><td>Backend language</td><td><strong>Java</strong> / Kotlin</td><td>Java matches what you're studying; Kotlin unifies both codebases</td></tr>
+<tr><td>Users</td><td><strong>Just you</strong> / multiple</td><td>Multiple users means a users table and owner filtering everywhere</td></tr>
+<tr><td>Categories</td><td><strong>Fixed enum</strong> / editable table</td><td>Editable needs a categories screen and CRUD</td></tr>
+<tr><td>Item fields</td><td>As listed / add warranty expiry, receipt photo, estimated value</td><td>Each field is cheap now, but costs a Flyway migration later</td></tr>
+<tr><td>Offline</td><td><strong>Online only</strong> / Room cache</td><td>Offline adds sync and conflict handling; best as v2</td></tr>
+<tr><td>Repositories</td><td><strong>Two repos</strong> / monorepo</td><td>Preference; two keeps CI simpler</td></tr>
+</table>
+
+<!-- 20 -->
+<h2 id="glossary">20. Glossary</h2>
+<table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>DTO</td><td>Data Transfer Object: a plain class describing what goes over the network, separate from database entities.</td></tr>
+<tr><td>Entity</td><td>A JPA class mapped to a database table.</td></tr>
+<tr><td>Migration</td><td>A versioned script that changes the database schema; Flyway runs them in order.</td></tr>
+<tr><td>Object storage</td><td>Storage for files ("objects") addressed by key, like S3 or R2. No folders, though keys with slashes look like them.</td></tr>
+<tr><td>Signed URL</td><td>A temporary link with a cryptographic signature that grants access to one private file until it expires.</td></tr>
+<tr><td>Egress</td><td>Data sent out of a provider to the internet. Often billed; free on R2.</td></tr>
+<tr><td>Cold start</td><td>The delay when a sleeping server has to start up before answering the first request.</td></tr>
+<tr><td>JWT</td><td>JSON Web Token: a signed token the server issues at login and checks on each request, without storing a session.</td></tr>
+<tr><td>BCrypt</td><td>A deliberately slow password-hashing algorithm, so stolen hashes are hard to crack.</td></tr>
+<tr><td>StateFlow</td><td>A Kotlin observable value that always has a current state; Compose re-renders when it changes.</td></tr>
+<tr><td>Coroutine</td><td>Kotlin's lightweight way to run asynchronous code (like network calls) without blocking the UI thread.</td></tr>
+<tr><td>Dependency injection</td><td>Objects receive the things they depend on instead of creating them, which makes swapping in fakes for tests easy.</td></tr>
+<tr><td>Unidirectional data flow</td><td>State flows down to the UI; events flow up to the ViewModel. Never both ways.</td></tr>
+<tr><td>N+1 query</td><td>Running one query for a list, then one more per row. Slow; fix with a join or batch query.</td></tr>
+<tr><td>Testcontainers</td><td>A library that starts real Docker containers (Postgres, MinIO) for your tests and throws them away after.</td></tr>
+<tr><td>FileProvider</td><td>Android component that safely shares a file from your app with another app (like the camera) via a <code>content://</code> URI.</td></tr>
+</table>
+<p style="color:var(--muted);font-size:14px;margin-top:40px">Free-tier limits checked October 2026: Render (render.com/docs/free), Neon (neon.com/pricing), Cloudflare R2 (developers.cloudflare.com/r2/pricing). Re-check before signing up.</p>
+</main>
+</div>
+<script>
+(function(){
+  var root=document.documentElement,btn=document.getElementById('themeBtn'),saved=null;
+  try{saved=localStorage.getItem('theme')}catch(e){}
+  if(saved)root.setAttribute('data-theme',saved);
+  btn.addEventListener('click',function(){
+    var cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    var next=cur==='dark'?'light':'dark';
+    root.setAttribute('data-theme',next);
+    try{localStorage.setItem('theme',next)}catch(e){}
+  });
+})();
+</script>
+</body>
+</html>
