@@ -76,11 +76,12 @@ Key rules:
 - Image files go in object storage, never in Postgres. Postgres stores a `storage_key` pointer.
 - The app loads images directly from R2 via **signed URLs** returned in item responses.
 - Everything must run on **free tiers**.
+- Monorepo: the backend lives in `hoard-api/`; the Android app gets its own top-level folder (named in Phase 3).
 
 ## Tech stack
 
 **Backend:**
-- Spring Boot 3
+- Spring Boot 4 (4.1.x)
 - Java 21
 - Spring Web
 - Spring Data JPA
@@ -89,7 +90,7 @@ Key rules:
 - PostgreSQL
 - AWS SDK v2 (S3 API, works with R2 and MinIO)
 - Spring Security + JWT
-- Gradle
+- Maven
 - Docker
 
 **Android:**
@@ -142,12 +143,12 @@ Before Phase 3, check whether David wants a short Kotlin fundamentals primer (va
 ## Commands
 
 ```bash
-# Backend (from the backend repo)
+# Backend (from hoard-api/)
 docker compose up -d                                          # Postgres + MinIO
-./gradlew bootRun --args='--spring.profiles.active=local'     # run API on :8080
-./gradlew test                                                # tests (Docker must be running)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local       # run API on :8080
+./mvnw test                                                   # tests (Docker must be running)
 
-# Android (from the Android repo)
+# Android (from the Android folder)
 ./gradlew assembleDebug
 ./gradlew test
 ```
@@ -164,6 +165,7 @@ docker compose up -d                                          # Postgres + MinIO
 | Render memory | Render's free tier has 512 MB, so set `JAVA_TOOL_OPTIONS=-XX:MaxRAMPercentage=75`. |
 | Render cold starts | Render sleeps after 15 idle minutes. The app needs a long read timeout and a "Waking server…" state. |
 | Neon connections | Neon requires `sslmode=require` in the JDBC URL. |
+| Boot 3 tutorials | Boot 4 renamed some starters (`-web` → `-webmvc`), split test starters per feature, and moved to Jackson 3. If tutorial code doesn't match, check the Boot 4 docs. |
 
 ## Reference
 
